@@ -11,6 +11,8 @@ import (
 
 const defaultErrorCode = -32000
 
+var pendingBlockNumErr = errors.New("pending state/transactions are not supported")
+
 var _ rpc.Error = callError{}
 
 type callError struct {

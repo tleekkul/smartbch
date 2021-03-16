@@ -43,7 +43,7 @@ type PublicEthAPI interface {
 	GetBlockByHash(hash common.Hash, fullTx bool) (map[string]interface{}, error)
 	GetBlockByNumber(blockNum gethrpc.BlockNumber, fullTx bool) (map[string]interface{}, error)
 	GetBlockTransactionCountByHash(hash common.Hash) *hexutil.Uint
-	GetBlockTransactionCountByNumber(blockNum gethrpc.BlockNumber) *hexutil.Uint
+	GetBlockTransactionCountByNumber(blockNum gethrpc.BlockNumber) (*hexutil.Uint, error)
 	GetCode(addr common.Address, blockNum gethrpc.BlockNumber) (hexutil.Bytes, error)
 	GetStorageAt(addr common.Address, key string, blockNum gethrpc.BlockNumber) (hexutil.Bytes, error)
 	GetTransactionByBlockHashAndIndex(hash common.Hash, idx hexutil.Uint) (*rpctypes.Transaction, error)
@@ -130,6 +130,10 @@ func (api *ethAPI) GasPrice() *hexutil.Big {
 
 // https://eth.wiki/json-rpc/API#eth_getBalance
 func (api *ethAPI) GetBalance(addr common.Address, blockNum gethrpc.BlockNumber) (*hexutil.Big, error) {
+	if blockNum == gethrpc.PendingBlockNumber {
+		return nil, pendingBlockNumErr
+	}
+
 	b, err := api.backend.GetBalance(addr, int64(blockNum))
 	if err != nil {
 		return nil, err
@@ -139,12 +143,20 @@ func (api *ethAPI) GetBalance(addr common.Address, blockNum gethrpc.BlockNumber)
 
 // https://eth.wiki/json-rpc/API#eth_getCode
 func (api *ethAPI) GetCode(addr common.Address, blockNum gethrpc.BlockNumber) (hexutil.Bytes, error) {
+	if blockNum == gethrpc.PendingBlockNumber {
+		return nil, pendingBlockNumErr
+	}
+
 	code, _ := api.backend.GetCode(addr)
 	return code, nil
 }
 
 // https://eth.wiki/json-rpc/API#eth_getStorageAt
 func (api *ethAPI) GetStorageAt(addr common.Address, key string, blockNum gethrpc.BlockNumber) (hexutil.Bytes, error) {
+	if blockNum == gethrpc.PendingBlockNumber {
+		return nil, pendingBlockNumErr
+	}
+
 	return api.backend.GetStorageAt(addr, key, uint64(blockNum)), nil
 }
 
@@ -162,6 +174,10 @@ func (api *ethAPI) GetBlockByHash(hash common.Hash, fullTx bool) (map[string]int
 
 // https://eth.wiki/json-rpc/API#eth_getBlockByNumber
 func (api *ethAPI) GetBlockByNumber(blockNum gethrpc.BlockNumber, fullTx bool) (map[string]interface{}, error) {
+	if blockNum == gethrpc.PendingBlockNumber {
+		return nil, pendingBlockNumErr
+	}
+
 	block, err := api.getBlockByNum(blockNum)
 	if err != nil {
 		if err == types.ErrBlockNotFound {
@@ -183,13 +199,17 @@ func (api *ethAPI) GetBlockTransactionCountByHash(hash common.Hash) *hexutil.Uin
 }
 
 // https://eth.wiki/json-rpc/API#eth_getBlockTransactionCountByNumber
-func (api *ethAPI) GetBlockTransactionCountByNumber(blockNum gethrpc.BlockNumber) *hexutil.Uint {
+func (api *ethAPI) GetBlockTransactionCountByNumber(blockNum gethrpc.BlockNumber) (*hexutil.Uint, error) {
+	if blockNum == gethrpc.PendingBlockNumber {
+		return nil, pendingBlockNumErr
+	}
+
 	block, err := api.getBlockByNum(blockNum)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	n := hexutil.Uint(len(block.Transactions))
-	return &n
+	return &n, nil
 }
 
 // https://eth.wiki/json-rpc/API#eth_getTransactionByBlockHashAndIndex
@@ -203,6 +223,10 @@ func (api *ethAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, idx hexut
 
 // https://eth.wiki/json-rpc/API#eth_getTransactionByBlockNumberAndIndex
 func (api *ethAPI) GetTransactionByBlockNumberAndIndex(blockNum gethrpc.BlockNumber, idx hexutil.Uint) (*rpctypes.Transaction, error) {
+	if blockNum == gethrpc.PendingBlockNumber {
+		return nil, pendingBlockNumErr
+	}
+
 	block, err := api.getBlockByNum(blockNum)
 	if err != nil {
 		return nil, err
@@ -221,6 +245,10 @@ func (api *ethAPI) GetTransactionByHash(hash common.Hash) (*rpctypes.Transaction
 
 // https://eth.wiki/json-rpc/API#eth_getTransactionCount
 func (api *ethAPI) GetTransactionCount(addr common.Address, blockNum gethrpc.BlockNumber) (*hexutil.Uint64, error) {
+	if blockNum == gethrpc.PendingBlockNumber {
+		return nil, pendingBlockNumErr
+	}
+
 	nonce, err := api.backend.GetNonce(addr)
 	if err != nil {
 		return nil, err
@@ -380,8 +408,12 @@ func (api *ethAPI) Syncing() (interface{}, error) {
 }
 
 // https://eth.wiki/json-rpc/API#eth_call
-func (api *ethAPI) Call(args rpctypes.CallArgs, blockNr gethrpc.BlockNumber) (hexutil.Bytes, error) {
-	tx, from, err := api.createGethTxFromCallArgs(args, blockNr)
+func (api *ethAPI) Call(args rpctypes.CallArgs, blockNum gethrpc.BlockNumber) (hexutil.Bytes, error) {
+	if blockNum == gethrpc.PendingBlockNumber {
+		return nil, pendingBlockNumErr
+	}
+
+	tx, from, err := api.createGethTxFromCallArgs(args, blockNum)
 	if err != nil {
 		return hexutil.Bytes{}, err
 	}

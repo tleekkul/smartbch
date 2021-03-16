@@ -2,6 +2,7 @@ package filters
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -20,6 +21,8 @@ var _ PublicFilterAPI = (*filterAPI)(nil)
 
 var (
 	deadline = 5 * time.Minute // consider a filter inactive if it has not been polled for within deadline
+
+	pendingBlockNumErr = errors.New("pending state/transactions are not supported")
 )
 
 type PublicFilterAPI interface {
@@ -271,6 +274,10 @@ func (api *filterAPI) GetLogs(crit gethfilters.FilterCriteria) ([]*gethtypes.Log
 	end := curHeight
 	if crit.ToBlock != nil {
 		end = crit.ToBlock.Int64()
+	}
+
+	if begin == int64(rpc.PendingBlockNumber) || end == int64(rpc.PendingBlockNumber) {
+		return nil, pendingBlockNumErr
 	}
 
 	//// Construct the range filter

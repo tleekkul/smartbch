@@ -302,7 +302,8 @@ func TestGetBlockTxCountByNum(t *testing.T) {
 	ctx.StoreBlock(nil) // flush previous block
 	ctx.Close(true)
 
-	cnt := _api.GetBlockTransactionCountByNumber(123)
+	cnt, err := _api.GetBlockTransactionCountByNumber(123)
+	require.NoError(t, err)
 	require.Equal(t, hexutil.Uint(4), *cnt)
 }
 
