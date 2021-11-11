@@ -12,15 +12,17 @@ contract Contract1 {
         contract3 = _contract3;
     }
 
-    function call2(uint256 n) public returns (uint256) {
-        counter += n * 100;
-        Contract2(contract2).call3(n + 1);
-        return counter;
+    function call2(uint256 id) public returns (uint256) {
+        counter++;
+        Contract2(contract2).call3(id + 1);
+        Contract2(contract2).call3(id + 5);
+        return id << 64;
     }
-    function call3(uint256 n) public returns (uint256) {
-        counter += n * 100;
-        Contract3(contract3).callMe(n + 1);
-        return counter;
+    function call3(uint256 id) public returns (uint256) {
+        counter++;
+        Contract3(contract3).callMe(id + 1);
+        Contract3(contract3).callMe(id + 5);
+        return id << 64;
     }
 
 }
@@ -34,10 +36,11 @@ contract Contract2 {
         contract3 = _contract3;
     }
 
-    function call3(uint256 n) public returns (uint256) {
-        counter += n * 200;
-        Contract3(contract3).callMe(n + 1);
-        return counter;
+    function call3(uint256 id) public returns (uint256) {
+        counter++;
+        Contract3(contract3).callMe(id + 1);
+        Contract3(contract3).callMe(id + 2);
+        return id << 64;
     }
 
 }
@@ -46,9 +49,9 @@ contract Contract3 {
 
     uint256 public counter;
 
-    function callMe(uint256 n) public returns (uint256) {
-        counter += n * 300;
-        return counter;
+    function callMe(uint256 id) public returns (uint256) {
+        counter++;
+        return id << 64;
     }
 
 }
