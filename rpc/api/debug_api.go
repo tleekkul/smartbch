@@ -59,19 +59,23 @@ func (api *debugAPI) updateStats() {
 
 	api.stats.NumGoroutine = runtime.NumGoroutine()
 	api.stats.NumGC = memStats.NumGC
-	api.stats.MemAllocMB = memStats.Alloc / 1024 / 1024
-	api.stats.MemSysMB = memStats.Sys / 1024 / 1024
+	api.stats.MemAllocMB = toMB(memStats.Alloc)
+	api.stats.MemSysMB = toMB(memStats.Sys)
 
 	osMemStats, err := memory.Get()
 	if err == nil {
-		api.stats.OsMemTotalMB = osMemStats.Total
-		api.stats.OsMemUsedMB = osMemStats.Used
-		api.stats.OsMemCachedMB = osMemStats.Cached
-		api.stats.OsMemFreeMB = osMemStats.Free
-		api.stats.OsMemActiveMB = osMemStats.Active
-		api.stats.OsMemInactiveMB = osMemStats.Inactive
-		api.stats.OsMemSwapTotalMB = osMemStats.SwapTotal
-		api.stats.OsMemSwapUsedMB = osMemStats.SwapUsed
-		api.stats.OsMemSwapFreeMB = osMemStats.SwapFree
+		api.stats.OsMemTotalMB = toMB(osMemStats.Total)
+		api.stats.OsMemUsedMB = toMB(osMemStats.Used)
+		api.stats.OsMemCachedMB = toMB(osMemStats.Cached)
+		api.stats.OsMemFreeMB = toMB(osMemStats.Free)
+		api.stats.OsMemActiveMB = toMB(osMemStats.Active)
+		api.stats.OsMemInactiveMB = toMB(osMemStats.Inactive)
+		api.stats.OsMemSwapTotalMB = toMB(osMemStats.SwapTotal)
+		api.stats.OsMemSwapUsedMB = toMB(osMemStats.SwapUsed)
+		api.stats.OsMemSwapFreeMB = toMB(osMemStats.SwapFree)
 	}
+}
+
+func toMB(n uint64) uint64 {
+	return n / 1024 / 1024
 }
