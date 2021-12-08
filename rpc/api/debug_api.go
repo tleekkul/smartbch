@@ -4,6 +4,8 @@ import (
 	"runtime"
 	"sync/atomic"
 	"time"
+
+	"github.com/mackerelio/go-osstat/memory"
 )
 
 const (
@@ -11,10 +13,19 @@ const (
 )
 
 type Stats struct {
-	NumGoroutine int    `json:"numGoroutine"`
-	NumGC        uint32 `json:"numGC"`
-	MemAllocMB   uint64 `json:"memAllocMB"`
-	MemSysMB     uint64 `json:"memSysMB"`
+	NumGoroutine     int    `json:"numGoroutine"`
+	NumGC            uint32 `json:"numGC"`
+	MemAllocMB       uint64 `json:"memAllocMB"`
+	MemSysMB         uint64 `json:"memSysMB"`
+	OsMemTotalMB     uint64 `json:"osMemTotalMB"`
+	OsMemUsedMB      uint64 `json:"osMemUsedMB"`
+	OsMemCachedMB    uint64 `json:"osMemCachedMB"`
+	OsMemFreeMB      uint64 `json:"osMemFreeMB"`
+	OsMemActiveMB    uint64 `json:"osMemActiveMB"`
+	OsMemInactiveMB  uint64 `json:"osMemInactiveMB"`
+	OsMemSwapTotalMB uint64 `json:"osMemSwapTotalMB"`
+	OsMemSwapUsedMB  uint64 `json:"osMemSwapUsedMB"`
+	OsMemSwapFreeMB  uint64 `json:"osMemSwapFreeMB"`
 }
 
 type DebugAPI interface {
@@ -50,4 +61,17 @@ func (api *debugAPI) updateStats() {
 	api.stats.NumGC = memStats.NumGC
 	api.stats.MemAllocMB = memStats.Alloc / 1024 / 1024
 	api.stats.MemSysMB = memStats.Sys / 1024 / 1024
+
+	osMemStats, err := memory.Get()
+	if err == nil {
+		api.stats.OsMemTotalMB = osMemStats.Total
+		api.stats.OsMemUsedMB = osMemStats.Used
+		api.stats.OsMemCachedMB = osMemStats.Cached
+		api.stats.OsMemFreeMB = osMemStats.Free
+		api.stats.OsMemActiveMB = osMemStats.Active
+		api.stats.OsMemInactiveMB = osMemStats.Inactive
+		api.stats.OsMemSwapTotalMB = osMemStats.SwapTotal
+		api.stats.OsMemSwapUsedMB = osMemStats.SwapUsed
+		api.stats.OsMemSwapFreeMB = osMemStats.SwapFree
+	}
 }
