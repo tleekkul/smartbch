@@ -15,7 +15,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/holiman/uint256 v1.1.1
 	github.com/kr/text v0.2.0 // indirect
-	github.com/mackerelio/go-osstat v0.2.1 // indirect
+	github.com/mackerelio/go-osstat v0.2.1
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/minio/highwayhash v1.0.2 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
@@ -26,7 +26,7 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/smartbch/moeingads v0.3.0
 	github.com/smartbch/moeingdb v0.3.3-0.20211208021729-0ca7b260f7f8
-	github.com/smartbch/moeingevm v0.3.2
+	github.com/smartbch/moeingevm v0.3.1-0.20211210025307-cf0588d6fb91
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.1.3
