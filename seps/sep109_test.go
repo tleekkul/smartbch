@@ -375,10 +375,10 @@ func TestVRF(t *testing.T) {
 		require.NoError(t, err)
 
 		inputData := testutils.JoinBytes(alphaBytess, testutils.HexToBytes(testCase.Pk), piBytes)
-		stats, statsStr, outputData := _app.Call(addr1, vrfAddr, inputData)
+		status, statusStr, outputData := _app.Call(addr1, vrfAddr, inputData)
 		//println(stats, statsStr, hex.EncodeToString(outputData))
-		require.Equal(t, 0, stats)
-		require.Equal(t, "success", statsStr)
+		require.Equal(t, 0, status)
+		require.Equal(t, "success", statusStr)
 		require.Equal(t, betaBytes, outputData)
 	}
 
