@@ -368,15 +368,16 @@ func TestVRF(t *testing.T) {
 		sk, _ := btcec.PrivKeyFromBytes(btcec.S256(), skBytes)
 
 		alpha, err := uint256.FromHex("0x" + testCase.Alpha)
-		alphaBytess := alpha.PaddedBytes(32)
+		alphaBytes := alpha.PaddedBytes(32)
 		require.NoError(t, err)
 
-		betaBytes, piBytes, err := ecvrf.NewSecp256k1Sha256Tai().Prove(sk.ToECDSA(), alphaBytess)
+		betaBytes, piBytes, err := ecvrf.NewSecp256k1Sha256Tai().Prove(sk.ToECDSA(), alphaBytes)
 		require.NoError(t, err)
 
-		inputData := testutils.JoinBytes(alphaBytess, testutils.HexToBytes(testCase.Pk), piBytes)
+		inputData := testutils.JoinBytes(alphaBytes, testutils.HexToBytes(testCase.Pk), piBytes)
+		//println(hex.EncodeToString(inputData))
 		status, statusStr, outputData := _app.Call(addr1, vrfAddr, inputData)
-		//println(stats, statsStr, hex.EncodeToString(outputData))
+		//println(status, statusStr, hex.EncodeToString(outputData))
 		require.Equal(t, 0, status)
 		require.Equal(t, "success", statusStr)
 		require.Equal(t, betaBytes, outputData)
