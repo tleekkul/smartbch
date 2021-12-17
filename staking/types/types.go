@@ -17,34 +17,11 @@ var (
 	ValidatorPubkeyAlreadyExists  = errors.New("Validator's pubkey already exists")
 )
 
-// These functions must be provided by a client connecting to a Bitcoin Cash's fullnode
-type RpcClient interface {
-	GetLatestHeight() int64
-	GetBlockByHeight(height int64) *BCHBlock
-	GetBlockByHash(hash [32]byte) *BCHBlock
-	GetEpochs(start, end uint64) []*Epoch
-}
-
 // Currently the first Vout in a coinbase transaction can nominate one validator with one vote
 // In the future it maybe extend to nominate multiple validators with different weights
 type Nomination struct {
 	Pubkey         [32]byte // The validator's ED25519 pubkey used in tendermint
 	NominatedCount int64
-}
-
-// This struct contains the useful information of a BCH block
-type BCHBlock struct {
-	Height      int64
-	Timestamp   int64
-	HashId      [32]byte
-	ParentBlk   [32]byte
-	Nominations []Nomination
-}
-
-//not check Nominations
-func (b *BCHBlock) Equal(o *BCHBlock) bool {
-	return b.Height == o.Height && b.Timestamp == o.Timestamp &&
-		b.HashId == o.HashId && b.ParentBlk == o.ParentBlk
 }
 
 // An epoch elects several validators in NumBlocksInEpoch blocks
@@ -175,11 +152,11 @@ func (si *StakingInfo) GetUselessValidators() map[[20]byte]struct{} {
 
 // Clear all the pending rewards belonging to an validator. Return the accumulated cleared amount.
 func (si *StakingInfo) ClearRewardsOf(addr [20]byte) (totalCleared *uint256.Int) {
-	totalCleared = uint256.NewInt()
+	totalCleared = uint256.NewInt(0)
 	rwdList := make([]*PendingReward, 0, len(si.PendingRewards))
 	for _, rwd := range si.PendingRewards {
 		if bytes.Equal(rwd.Address[:], addr[:]) {
-			coins := uint256.NewInt().SetBytes32(rwd.Amount[:])
+			coins := uint256.NewInt(0).SetBytes32(rwd.Amount[:])
 			totalCleared.Add(totalCleared, coins)
 			if rwd.EpochNum == si.CurrEpochNum { // we still need this entry
 				rwd.Amount = [32]byte{}        // just clear the amount
@@ -211,7 +188,7 @@ func (si *StakingInfo) GetActiveValidators(minStakedCoins *uint256.Int) []*Valid
 func GetActiveValidators(vals []*Validator, minStakedCoins *uint256.Int) []*Validator {
 	res := make([]*Validator, 0, len(vals))
 	for _, val := range vals {
-		coins := uint256.NewInt().SetBytes32(val.StakedCoins[:])
+		coins := uint256.NewInt(0).SetBytes32(val.StakedCoins[:])
 		if coins.Cmp(minStakedCoins) >= 0 && !val.IsRetiring && val.VotingPower > 0 {
 			res = append(res, val)
 		}
